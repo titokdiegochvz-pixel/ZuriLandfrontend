@@ -28,7 +28,7 @@ const Store = () => {
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                alert(data.error || 'Error al crear la sesión de pago.');
+                alert(data.message || data.error || 'Error al crear la sesión de pago.');
             }
 
         } catch (error) {
