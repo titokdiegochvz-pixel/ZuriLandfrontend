@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import Header from './components/Header';
 import ServerHeader from './components/ServerHeader';
@@ -30,6 +30,23 @@ function PagoCancelado() {
     );
 }
 
+function CommunityPage() {
+    const navigate = useNavigate();
+
+    return (
+        <Community
+            onOpenRanking={() => navigate('/ranking')}
+            onOpenRules={() => navigate('/rules')}
+        />
+    );
+}
+
+function RankingPage() {
+    const navigate = useNavigate();
+
+    return <Ranking onBack={() => navigate('/community')} />;
+}
+
 function App() {
     return (
         <Router>
@@ -43,8 +60,8 @@ function App() {
                         <Route path="/home" element={<Home />} />
                         <Route path="/store" element={<Store />} />
                         <Route path="/store/zuriland" element={<Store />} />
-                        <Route path="/community" element={<Community />} />
-                        <Route path="/ranking" element={<Ranking />} />
+                        <Route path="/community" element={<CommunityPage />} />
+                        <Route path="/ranking" element={<RankingPage />} />
                         <Route path="/rules" element={
                             <section className="content-section">
                                 <h2>Reglas del servidor</h2>

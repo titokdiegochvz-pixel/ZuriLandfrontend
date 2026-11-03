@@ -1,74 +1,63 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config/api';
 import './Ranking.css';
+
+const categories = {
+    residents: { label: 'Habitantes', icon: '👥' },
+    towns: { label: 'Pueblos', icon: '🏘️' },
+    land: { label: 'Territorio', icon: '🗺️' },
+};
+
+const numberFormat = new Intl.NumberFormat('es-MX');
 
 const Ranking = ({ onBack }) => {
     const [category, setCategory] = useState('residents');
+    const [nations, setNations] = useState([]);
+    const [updatedAt, setUpdatedAt] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    const [nations] = useState([
-        {
-            id: 1,
-            name: 'Imperio Español',
-            residents: 45,
-            towns: 12,
-            land: 350,
-            money: 2500000,
-            kills: 342,
-        },
-        {
-            id: 2,
-            name: 'Reino de México',
-            residents: 38,
-            towns: 10,
-            land: 290,
-            money: 1850000,
-            kills: 428,
-        },
-        {
-            id: 3,
-            name: 'República Francesa',
-            residents: 30,
-            towns: 8,
-            land: 220,
-            money: 1200000,
-            kills: 290,
-        },
-        {
-            id: 4,
-            name: 'Imperio Japonés',
-            residents: 22,
-            towns: 6,
-            land: 180,
-            money: 950000,
-            kills: 215,
-        },
-        {
-            id: 5,
-            name: 'Reino Británico',
-            residents: 18,
-            towns: 5,
-            land: 140,
-            money: 780000,
-            kills: 180,
-        },
-    ]);
+    useEffect(() => {
+        const controller = new AbortController();
 
-    const categories = {
-        residents: { label: 'Residentes', icon: '👥' },
-        towns: { label: 'Pueblos', icon: '🏘️' },
-        land: { label: 'Territorio', icon: '🗺️' },
-        money: { label: 'Dinero', icon: '💰' },
-        kills: { label: 'Matanzas', icon: '⚔️' },
-    };
+        const loadRanking = async () => {
+            setLoading(true);
+            setError('');
 
-    const formatMoney = (value) =>
-        '$' + new Intl.NumberFormat('es-MX', {
-            notation: 'compact',
-            maximumFractionDigits: 1,
-        }).format(value);
+            try {
+                const response = await fetch(`${API_URL}/api/towny/ranking`, {
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!Array.isArray(data.nations)) {
+                    throw new Error('Invalid ranking response');
+                }
+
+                setNations(data.nations);
+                setUpdatedAt(data.updated_at || null);
+            } catch (requestError) {
+                if (requestError.name !== 'AbortError') {
+                    setError('No se pudo cargar la clasificación. Inténtalo de nuevo.');
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadRanking();
+        return () => controller.abort();
+    }, [refreshKey]);
 
     const sortedNations = [...nations].sort(
-        (a, b) => b[category] - a[category]
+        (first, second) => second[category] - first[category]
     );
 
     return (
@@ -84,7 +73,7 @@ const Ranking = ({ onBack }) => {
 
                 <h2>Tabla de clasificación</h2>
 
-                <p>Compara las estadísticas de las naciones.</p>
+                <p>Clasificación actualizada desde las naciones de Towny.</p>
             </div>
 
             <div className="ranking-tabs">
@@ -99,61 +88,82 @@ const Ranking = ({ onBack }) => {
                         {item.icon} {item.label}
                     </button>
                 ))}
+                <button
+                    className="ranking-tab"
+                    onClick={() => setRefreshKey((key) => key + 1)}
+                    disabled={loading}
+                >
+                    Actualizar
+                </button>
             </div>
 
-            <div className="ranking-table-wrap">
-                <table className="ranking-table">
-                    <thead>
-                        <tr>
-                            <th>POS.</th>
-                            <th>NACIÓN</th>
-                            <th>RESIDENTES</th>
-                            <th>PUEBLOS</th>
-                            <th>TERRITORIO</th>
-                            <th>DINERO</th>
-                            <th>MATANZAS</th>
-                        </tr>
-                    </thead>
+            {error && (
+                <p className="ranking-message ranking-error" role="alert">
+                    {error}
+                </p>
+            )}
 
-                    <tbody>
-                        {sortedNations.map((nation, index) => (
-                            <tr key={nation.id}>
-                                <td className="rank-position">
-                                    {index === 0
-                                        ? '🥇'
-                                        : index === 1
-                                        ? '🥈'
-                                        : index === 2
-                                        ? '🥉'
-                                        : index + 1}
-                                </td>
+            {!error && loading && (
+                <p className="ranking-message" role="status">
+                    Cargando clasificación…
+                </p>
+            )}
 
-                                <td>
-                                    <strong className="rank-nation">
-                                        {nation.name}
-                                    </strong>
-                                </td>
+            {!error && !loading && nations.length === 0 && (
+                <p className="ranking-message" role="status">
+                    El servidor todavía no ha enviado datos de Towny.
+                </p>
+            )}
 
-                                <td>{nation.residents}</td>
-                                <td>{nation.towns}</td>
-                                <td>{nation.land}</td>
-
-                                <td className="rank-money">
-                                    {formatMoney(nation.money)}
-                                </td>
-
-                                <td className="rank-kills">
-                                    {nation.kills.toLocaleString('es-MX')}
-                                </td>
+            {!error && !loading && nations.length > 0 && (
+                <div className="ranking-table-wrap">
+                    <table className="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>POS.</th>
+                                <th>NACIÓN</th>
+                                <th>PUEBLOS</th>
+                                <th>HABITANTES</th>
+                                <th>TERRITORIO (PARCELAS)</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+
+                        <tbody>
+                            {sortedNations.map((nation, index) => (
+                                <tr key={nation.name}>
+                                    <td className="rank-position">
+                                        {index === 0
+                                            ? '🥇'
+                                            : index === 1
+                                            ? '🥈'
+                                            : index === 2
+                                            ? '🥉'
+                                            : index + 1}
+                                    </td>
+
+                                    <td>
+                                        <strong className="rank-nation">
+                                            {nation.name}
+                                        </strong>
+                                    </td>
+
+                                    <td>{numberFormat.format(nation.towns)}</td>
+                                    <td>{numberFormat.format(nation.residents)}</td>
+                                    <td>{numberFormat.format(nation.land)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             <footer className="ranking-footer">
                 <span>🌍 {nations.length} naciones</span>
-                <span>Datos de demostración</span>
+                <span>
+                    {updatedAt
+                        ? `Actualizado: ${new Date(updatedAt).toLocaleString('es-MX')}`
+                        : 'Esperando la primera sincronización'}
+                </span>
             </footer>
         </section>
     );

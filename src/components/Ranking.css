@@ -83,6 +83,19 @@
     border-radius: 12px;
 }
 
+.ranking-message {
+    padding: 18px;
+    color: #a5b4d4;
+    background: #10172a;
+    border: 1px solid #303958;
+    border-radius: 9px;
+}
+
+.ranking-error {
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
+
 .ranking-table {
     width: 100%;
     min-width: 850px;
