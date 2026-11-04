@@ -1,12 +1,51 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { API_URL } from '../config/api';
 import './ServerHeader.css';
 
 const ServerHeader = () => {
     const [mostrarGuia, setMostrarGuia] = useState(false);
+    const [serverStatus, setServerStatus] = useState(null);
+    const [statusUnavailable, setStatusUnavailable] = useState(false);
 
     const ip = 'pgsql-stained.tun.ply.gg';
+
+    useEffect(() => {
+        let active = true;
+
+        const loadServerStatus = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/minecraft/status`);
+                const status = await response.json();
+
+                if (
+                    !response.ok
+                    || typeof status?.online !== 'boolean'
+                    || typeof status?.players?.online !== 'number'
+                ) {
+                    throw new Error('No se pudo obtener el estado del servidor.');
+                }
+
+                if (active) {
+                    setServerStatus(status);
+                    setStatusUnavailable(false);
+                }
+            } catch {
+                if (active) {
+                    setServerStatus(null);
+                    setStatusUnavailable(true);
+                }
+            }
+        };
+
+        loadServerStatus();
+        const intervalId = window.setInterval(loadServerStatus, 30000);
+
+        return () => {
+            active = false;
+            window.clearInterval(intervalId);
+        };
+    }, []);
 
     const copiarIP = async () => {
         try {
@@ -27,8 +66,14 @@ const ServerHeader = () => {
                         <span className="banner-icon">🎮</span>
 
                         <div>
-                            <span className="banner-small">
-                                0 JUGADORES EN LÍNEA
+                            <span className="banner-small" aria-live="polite">
+                                {serverStatus
+                                    ? serverStatus.online
+                                        ? `${serverStatus.players.online} ${serverStatus.players.online === 1 ? 'JUGADOR' : 'JUGADORES'} EN LÍNEA`
+                                        : 'SERVIDOR DESCONECTADO'
+                                    : statusUnavailable
+                                        ? 'ESTADO NO DISPONIBLE'
+                                        : 'CONSULTANDO JUGADORES...'}
                             </span>
                             <strong>pgsql-stained.tun.ply.gg</strong>
                         </div>
