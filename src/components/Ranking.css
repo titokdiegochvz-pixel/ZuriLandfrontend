@@ -39,10 +39,7 @@
 .ranking-heading h2 {
     margin: 10px 0;
     font-size: clamp(24px, 4vw, 32px);
-    background: linear-gradient(90deg, #c4b5fd, #60a5fa);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #c4b5fd;
 }
 
 .ranking-heading p {
@@ -116,6 +113,30 @@
     padding: 16px 14px;
     border-top: 1px solid #252c4a;
     font-size: 13px;
+    vertical-align: top;
+}
+
+.ranking-table th:first-child,
+.ranking-table td:first-child {
+    white-space: nowrap;
+}
+
+.ranking-names {
+    min-width: 180px;
+    color: #e0e7ff;
+    overflow-wrap: anywhere;
+}
+
+.ranking-kills-list ul {
+    display: grid;
+    gap: 5px;
+    min-width: 180px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ranking-kills-list li {
     white-space: nowrap;
 }
 

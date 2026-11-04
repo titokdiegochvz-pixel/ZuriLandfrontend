@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { API_URL } from '../config/api';
 import './Ranking.css';
 
-const numberFormat = new Intl.NumberFormat('es-MX');
-
 const Ranking = ({ onBack }) => {
-    const [nations, setNations] = useState([]);
+    const [towns, setTowns] = useState([]);
     const [updatedAt, setUpdatedAt] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -14,12 +12,12 @@ const Ranking = ({ onBack }) => {
     useEffect(() => {
         const controller = new AbortController();
 
-        const loadRanking = async () => {
+        const loadTowns = async () => {
             setLoading(true);
             setError('');
 
             try {
-                const response = await fetch(`${API_URL}/api/towny/ranking`, {
+                const response = await fetch(`${API_URL}/api/towny/kills`, {
                     signal: controller.signal,
                 });
 
@@ -28,15 +26,15 @@ const Ranking = ({ onBack }) => {
                 }
 
                 const data = await response.json();
-                if (!Array.isArray(data.nations)) {
-                    throw new Error('Invalid ranking response');
+                if (!Array.isArray(data.towns)) {
+                    throw new Error('Invalid Towny response');
                 }
 
-                setNations(data.nations);
+                setTowns(data.towns);
                 setUpdatedAt(data.updated_at || null);
             } catch (requestError) {
                 if (requestError.name !== 'AbortError') {
-                    setError('No se pudo cargar la clasificación. Inténtalo de nuevo.');
+                    setError('No se pudieron cargar las ciudades. Inténtalo de nuevo.');
                 }
             } finally {
                 if (!controller.signal.aborted) {
@@ -45,13 +43,11 @@ const Ranking = ({ onBack }) => {
             }
         };
 
-        loadRanking();
+        loadTowns();
         return () => controller.abort();
     }, [refreshKey]);
 
-    const sortedNations = [...nations].sort(
-        (first, second) => (second.kills ?? 0) - (first.kills ?? 0)
-    );
+    const killCount = towns.reduce((total, town) => total + town.kills.length, 0);
 
     return (
         <section className="ranking-section">
@@ -66,7 +62,7 @@ const Ranking = ({ onBack }) => {
 
                 <h2>Tabla de clasificación</h2>
 
-                <p>Clasificación de naciones por kills de sus habitantes.</p>
+                <p>Habitantes de cada ciudad y las últimas 18 bajas registradas.</p>
             </div>
 
             <div className="ranking-tabs">
@@ -87,13 +83,13 @@ const Ranking = ({ onBack }) => {
 
             {!error && loading && (
                 <p className="ranking-message" role="status">
-                    Cargando clasificación…
+                    Cargando ciudades…
                 </p>
             )}
 
-            {!error && !loading && nations.length === 0 && (
+            {!error && !loading && towns.length === 0 && (
                 <p className="ranking-message" role="status">
-                    Aún no se reciben datos de Towny. Confirma que el plugin de sincronización esté instalado y activo en el servidor.
+                    Aún no se reciben ciudades de Towny. Confirma que el plugin esté instalado y activo.
                 </p>
             )}
 
@@ -102,32 +98,46 @@ const Ranking = ({ onBack }) => {
                     <table className="ranking-table">
                         <thead>
                             <tr>
+                                <th>CIUDAD</th>
                                 <th>HABITANTES</th>
-                                <th>CIUDADES</th>
                                 <th>KILLS</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {sortedNations.length === 0 ? (
+                            {towns.length === 0 ? (
                                 <tr>
                                     <td className="ranking-empty" colSpan="3">
-                                        Aún no hay datos sincronizados.
+                                        Esperando la primera sincronización de Towny.
                                     </td>
                                 </tr>
                             ) : (
-                                sortedNations.map((nation) => (
-                                    <tr key={nation.name}>
-                                        <td>
-                                            {numberFormat.format(nation.residents ?? 0)}
-                                        </td>
-
+                                towns.map((town) => (
+                                    <tr key={town.name}>
                                         <td className="rank-nation">
-                                            {numberFormat.format(nation.towns ?? 0)}
+                                            {town.name}
                                         </td>
 
-                                        <td className="rank-kills">
-                                            {numberFormat.format(nation.kills ?? 0)}
+                                        <td className="ranking-names">
+                                            {town.residents.length > 0
+                                                ? town.residents.join(', ')
+                                                : 'Sin habitantes'}
+                                        </td>
+
+                                        <td className="rank-kills ranking-kills-list">
+                                            {town.kills.length > 0 ? (
+                                                <ul>
+                                                    {town.kills.map((kill, index) => (
+                                                        <li key={`${kill.occurred_at}-${kill.killer_name}-${index}`}>
+                                                            <span>{kill.killer_name}</span>
+                                                            {' → '}
+                                                            <span>{kill.victim_name}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                '—'
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -138,7 +148,9 @@ const Ranking = ({ onBack }) => {
             )}
 
             <footer className="ranking-footer">
-                <span>🌍 {nations.length} naciones</span>
+                <span>
+                    {towns.length} {towns.length === 1 ? 'ciudad' : 'ciudades'} · {killCount} {killCount === 1 ? 'baja reciente' : 'bajas recientes'} (máx. 18)
+                </span>
                 <span>
                     {updatedAt
                         ? `Actualizado: ${new Date(updatedAt).toLocaleString('es-MX')}`
