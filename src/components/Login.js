@@ -24,13 +24,16 @@ const Login = () => {
             setCurrentUser(response.data.usuario);
             navigate('/');
         } catch (error) {
-            const mensaje = error.response?.data?.errors
-                ? Object.values(error.response.data.errors).flat()[0]
-                : error.response?.data?.message || (
-                    error.message === 'Network Error'
-                        ? 'No se pudo conectar con el servidor.'
-                        : error.message || 'No se pudo conectar con el servidor.'
-                );
+            const retryAfter = Number(error.response?.headers?.['retry-after']);
+            const mensaje = error.response?.status === 429
+                ? `Se alcanzó el límite de intentos de inicio de sesión. Espera ${retryAfter > 0 ? retryAfter : 60} segundos y vuelve a intentarlo.`
+                : error.response?.data?.errors
+                    ? Object.values(error.response.data.errors).flat()[0]
+                    : error.response?.data?.message || (
+                        error.message === 'Network Error'
+                            ? 'No se pudo conectar con el servidor.'
+                            : error.message || 'No se pudo conectar con el servidor.'
+                    );
             setError(mensaje);
         } finally {
             setIniciando(false);
