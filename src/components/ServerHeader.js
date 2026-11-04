@@ -39,7 +39,7 @@ const ServerHeader = () => {
         };
 
         loadServerStatus();
-        const intervalId = window.setInterval(loadServerStatus, 30000);
+        const intervalId = window.setInterval(loadServerStatus, 5000);
 
         return () => {
             active = false;
