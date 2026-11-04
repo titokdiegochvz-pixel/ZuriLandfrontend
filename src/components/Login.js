@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import { setCurrentUser } from '../auth';
 import { API_URL } from '../config/api';
 
 const Login = () => {
@@ -20,12 +21,16 @@ const Login = () => {
                 identificador: username,
                 password,
             });
-            sessionStorage.setItem('zuriland_usuario', JSON.stringify(response.data.usuario));
+            setCurrentUser(response.data.usuario);
             navigate('/');
         } catch (error) {
             const mensaje = error.response?.data?.errors
                 ? Object.values(error.response.data.errors).flat()[0]
-                : error.response?.data?.message || 'No se pudo conectar con el servidor.';
+                : error.response?.data?.message || (
+                    error.message === 'Network Error'
+                        ? 'No se pudo conectar con el servidor.'
+                        : error.message || 'No se pudo conectar con el servidor.'
+                );
             setError(mensaje);
         } finally {
             setIniciando(false);

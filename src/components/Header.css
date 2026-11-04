@@ -2,7 +2,9 @@
 .main-navbar {
     position: relative;
     z-index: 5;
+    box-sizing: border-box;
     width: 100%;
+    padding: 0;
     background: #fff;
     border-bottom: 1px solid #e9eaf0;
     box-shadow: 0 3px 10px rgba(30, 40, 70, 0.04);
@@ -16,6 +18,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 18px;
+}
+
+.navbar-inner a {
+    margin: 0;
 }
 
 .navbar-links,
@@ -75,6 +81,62 @@
     background: #2467e0;
 }
 
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.navbar-avatar {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border: 1px solid #d5c2ff;
+    border-radius: 50%;
+    background: #f0e9ff;
+    color: #6934bd;
+    font-size: 14px;
+    font-weight: 750;
+    text-transform: uppercase;
+}
+
+.navbar-user-name {
+    max-width: 150px;
+    overflow: hidden;
+    color: #34384c;
+    font-size: 12px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logout-button {
+    padding: 7px 9px;
+    border: 1px solid #e0e2e9;
+    border-radius: 8px;
+    background: #fff;
+    color: #535770;
+    font: inherit;
+    font-size: 11px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.logout-button:hover {
+    border-color: #c9b2ef;
+    background: #f8f5ff;
+    color: #6934bd;
+}
+
+.logout-button:focus-visible {
+    outline: 2px solid #8352cf;
+    outline-offset: 2px;
+}
+
 .cart-button {
     position: relative;
     display: flex;
@@ -126,5 +188,9 @@
     .navbar-account {
         justify-content: center;
         flex-wrap: wrap;
+    }
+
+    .navbar-user-name {
+        max-width: 110px;
     }
 }
