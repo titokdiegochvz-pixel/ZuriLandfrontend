@@ -119,6 +119,13 @@
     white-space: nowrap;
 }
 
+.ranking-table .ranking-empty {
+    padding: 24px 14px;
+    color: #a5b4d4;
+    text-align: center;
+    white-space: normal;
+}
+
 .ranking-table tbody tr {
     background: #0d1424;
     transition: background 0.2s;

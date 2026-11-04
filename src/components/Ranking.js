@@ -93,11 +93,11 @@ const Ranking = ({ onBack }) => {
 
             {!error && !loading && nations.length === 0 && (
                 <p className="ranking-message" role="status">
-                    El servidor todavía no ha enviado datos de Towny.
+                    Aún no se reciben datos de Towny. Confirma que el plugin de sincronización esté instalado y activo en el servidor.
                 </p>
             )}
 
-            {!error && !loading && nations.length > 0 && (
+            {!error && !loading && (
                 <div className="ranking-table-wrap">
                     <table className="ranking-table">
                         <thead>
@@ -109,29 +109,37 @@ const Ranking = ({ onBack }) => {
                         </thead>
 
                         <tbody>
-                            {sortedNations.map((nation, index) => (
-                                <tr key={nation.name}>
-                                    <td className="rank-position">
-                                        {index === 0
-                                            ? '🥇'
-                                            : index === 1
-                                            ? '🥈'
-                                            : index === 2
-                                            ? '🥉'
-                                            : index + 1}
-                                    </td>
-
-                                    <td>
-                                        <strong className="rank-nation">
-                                            {nation.name}
-                                        </strong>
-                                    </td>
-
-                                    <td className="rank-kills">
-                                        {numberFormat.format(nation.kills ?? 0)}
+                            {sortedNations.length === 0 ? (
+                                <tr>
+                                    <td className="ranking-empty" colSpan="3">
+                                        Aún no hay naciones sincronizadas.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                sortedNations.map((nation, index) => (
+                                    <tr key={nation.name}>
+                                        <td className="rank-position">
+                                            {index === 0
+                                                ? '🥇'
+                                                : index === 1
+                                                ? '🥈'
+                                                : index === 2
+                                                ? '🥉'
+                                                : index + 1}
+                                        </td>
+
+                                        <td>
+                                            <strong className="rank-nation">
+                                                {nation.name}
+                                            </strong>
+                                        </td>
+
+                                        <td className="rank-kills">
+                                            {numberFormat.format(nation.kills ?? 0)}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

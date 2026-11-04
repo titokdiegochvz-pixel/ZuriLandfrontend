@@ -54,6 +54,21 @@ describe('Ranking kills leaderboard', () => {
         expect(screen.getByRole('cell', { name: '0' })).toBeInTheDocument();
     });
 
+    test('shows the kills table and explains the empty state before the first sync', async () => {
+        global.fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ nations: [], updated_at: null }),
+        });
+
+        render(<Ranking onBack={jest.fn()} />);
+
+        expect(await screen.findByRole('columnheader', { name: 'KILLS' })).toBeInTheDocument();
+        expect(screen.getByText('Aún no hay naciones sincronizadas.')).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent(
+            'Confirma que el plugin de sincronización esté instalado y activo en el servidor.'
+        );
+    });
+
     test('retains the manual refresh control', async () => {
         global.fetch.mockResolvedValue({
             ok: true,
