@@ -231,14 +231,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 35px;
+    gap: 7px;
+    min-width: 35px;
     height: 35px;
+    padding: 0 10px;
     border: none;
     border-radius: 9px;
     background: #397cf5;
     color: white;
     font-size: 15px;
     cursor: pointer;
+}
+
+.cart-label {
+    font-size: 11px;
+    font-weight: 650;
 }
 
 .cart-count {

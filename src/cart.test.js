@@ -1,4 +1,11 @@
-import { addToCart, getCartCount, getCartItems, CART_CHANGE_EVENT } from './cart';
+import {
+    addToCart,
+    clearCart,
+    getCartCount,
+    getCartItems,
+    setCartItems,
+    CART_CHANGE_EVENT,
+} from './cart';
 
 describe('shopping cart', () => {
     beforeEach(() => {
@@ -27,5 +34,21 @@ describe('shopping cart', () => {
         expect(() => addToCart({ title: '', price: 49 })).toThrow();
         expect(() => addToCart({ title: 'Elite', price: -1 })).toThrow();
         expect(getCartCount()).toBe(0);
+    });
+
+    test('replaces and clears cart items while notifying the header', () => {
+        const handleCartChange = jest.fn();
+        window.addEventListener(CART_CHANGE_EVENT, handleCartChange);
+
+        setCartItems([{ title: 'Dios', price: 99, quantity: 2 }]);
+        expect(getCartItems()).toEqual([{ title: 'Dios', price: 99, quantity: 2 }]);
+        expect(getCartCount()).toBe(2);
+
+        clearCart();
+        expect(getCartItems()).toEqual([]);
+        expect(getCartCount()).toBe(0);
+        expect(handleCartChange).toHaveBeenCalledTimes(2);
+
+        window.removeEventListener(CART_CHANGE_EVENT, handleCartChange);
     });
 });

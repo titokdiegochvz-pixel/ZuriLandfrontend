@@ -120,6 +120,33 @@
     stroke: #f1c96a;
 }
 
+.store-view-cart-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    margin: -8px auto 18px;
+    padding: 0 15px;
+    border: 1px solid #6f4a9d;
+    border-radius: 9px;
+    background: #1c1830;
+    color: #eadbff;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 160ms ease, border-color 160ms ease;
+}
+
+.store-view-cart-button:hover {
+    border-color: #a855f7;
+    background: #29213d;
+}
+
+.store-view-cart-button:focus-visible {
+    outline: 2px solid #e1c4ff;
+    outline-offset: 3px;
+}
+
 .store-category-nav button:focus-visible,
 .store-buy-button:focus-visible,
 .store-paypal-button:focus-visible {

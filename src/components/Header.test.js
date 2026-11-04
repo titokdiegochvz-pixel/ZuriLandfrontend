@@ -20,7 +20,7 @@ test('opens the profile menu and signs out the current user', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Perfil' }));
 
     expect(screen.getByText('alex@example.com')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Mi carrito' })).toHaveAttribute('href', '/store');
+    expect(screen.getByRole('link', { name: 'Mi carrito' })).toHaveAttribute('href', '/cart');
 
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { API_URL } from '../config/api';
 import { addToCart } from '../cart';
 import './Store.css';
@@ -179,6 +179,10 @@ const Store = () => {
                     </button>
                 ))}
             </div>
+
+            <Link to="/cart" className="store-view-cart-button">
+                Ver carrito
+            </Link>
 
             {paypalMensaje && (
                 <p className="store-payment-message" role="status">

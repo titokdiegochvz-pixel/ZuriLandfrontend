@@ -102,7 +102,7 @@ const Header = () => {
                                     )}
                                     <div className="profile-menu-divider" />
                                     <Link
-                                        to="/store"
+                                        to="/cart"
                                         className="profile-menu-link"
                                         onClick={() => setProfileMenuOpen(false)}
                                     >
@@ -134,12 +134,13 @@ const Header = () => {
                     )}
 
                     <Link
-                        to="/store"
+                        to="/cart"
                         className="cart-button"
-                        title="Ir a la tienda"
+                        title="Ver carrito"
                         aria-label={`Carrito con ${cartCount} ${cartCount === 1 ? 'producto' : 'productos'}`}
                     >
                         🛒
+                        <span className="cart-label">Carrito</span>
                         <span className="cart-count">{cartCount}</span>
                     </Link>
                 </div>

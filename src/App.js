@@ -5,6 +5,7 @@ import Header from './components/Header';
 import ServerHeader from './components/ServerHeader';
 import Home from './components/Home';
 import Store from './components/Store';
+import Cart from './components/Cart';
 import Community from './components/Community';
 import Ranking from './components/Ranking';
 import Login from './components/Login';
@@ -60,6 +61,7 @@ function App() {
                         <Route path="/home" element={<Home />} />
                         <Route path="/store" element={<Store />} />
                         <Route path="/store/zuriland" element={<Store />} />
+                        <Route path="/cart" element={<Cart />} />
                         <Route path="/community" element={<CommunityPage />} />
                         <Route path="/ranking" element={<RankingPage />} />
                         <Route path="/rules" element={

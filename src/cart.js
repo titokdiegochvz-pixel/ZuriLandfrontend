@@ -50,6 +50,19 @@ export function addToCart(product) {
         });
     }
 
+    setCartItems(items);
+}
+
+export function setCartItems(items) {
+    if (!Array.isArray(items)) {
+        throw new Error('El carrito debe ser una lista de productos.');
+    }
+
     sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event(CART_CHANGE_EVENT));
+}
+
+export function clearCart() {
+    sessionStorage.removeItem(CART_STORAGE_KEY);
     window.dispatchEvent(new Event(CART_CHANGE_EVENT));
 }
