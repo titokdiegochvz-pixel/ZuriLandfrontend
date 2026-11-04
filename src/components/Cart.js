@@ -26,6 +26,7 @@ const Cart = () => {
     const [items, setItems] = useState(getCartItems);
     const [checkoutMessage, setCheckoutMessage] = useState('');
     const [checkoutPending, setCheckoutPending] = useState(false);
+    const [checkoutMethod, setCheckoutMethod] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
     const captureStarted = useRef(false);
 
@@ -91,38 +92,54 @@ const Cart = () => {
 
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    const checkout = async () => {
+    const startCheckout = async ({ method, endpoint, payload, responseUrl, errorMessage }) => {
         setCheckoutMessage('');
         setCheckoutPending(true);
+        setCheckoutMethod(method);
 
         try {
             if (!API_URL) {
                 throw new Error('La tienda no está conectada al servidor de pagos. Inténtalo más tarde.');
             }
 
-            const response = await fetch(`${API_URL}/api/paypal/orders`, {
+            const response = await fetch(`${API_URL}${endpoint}`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    items: items.map(({ title, quantity }) => ({ title, quantity })),
-                }),
+                body: JSON.stringify(payload),
             });
             const data = await response.json();
 
-            if (!response.ok || !data.approval_url) {
-                throw new Error(data.message || 'No se pudo iniciar el pago. Inténtalo de nuevo.');
+            if (!response.ok || !data[responseUrl]) {
+                throw new Error(data.message || errorMessage);
             }
 
-            window.location.assign(data.approval_url);
+            window.location.assign(data[responseUrl]);
         } catch (error) {
-            console.error('Error al iniciar el pago del carrito:', error);
-            setCheckoutMessage(error.message || 'No se pudo iniciar el pago. Inténtalo de nuevo.');
+            console.error(`Error al iniciar el pago ${method} del carrito:`, error);
+            setCheckoutMessage(error.message || errorMessage);
             setCheckoutPending(false);
+            setCheckoutMethod('');
         }
     };
+
+    const checkoutWithPayPal = () => startCheckout({
+        method: 'con PayPal',
+        endpoint: '/api/paypal/orders',
+        payload: { items: items.map(({ title, quantity }) => ({ title, quantity })) },
+        responseUrl: 'approval_url',
+        errorMessage: 'No se pudo iniciar el pago con PayPal. Inténtalo de nuevo.',
+    });
+
+    const checkoutWithCard = () => startCheckout({
+        method: 'con tarjeta',
+        endpoint: '/api/create-checkout-session',
+        payload: { items: items.map(({ title, quantity }) => ({ title, quantity })) },
+        responseUrl: 'url',
+        errorMessage: 'No se pudo iniciar el pago con tarjeta. Inténtalo de nuevo.',
+    });
 
     return (
         <section className="cart-page" aria-labelledby="cart-title">
@@ -192,10 +209,28 @@ const Cart = () => {
                         <button
                             type="button"
                             className="cart-primary-button cart-checkout-button"
-                            onClick={checkout}
+                            onClick={checkoutWithPayPal}
                             disabled={checkoutPending}
                         >
-                            {checkoutPending ? 'Procesando…' : 'Pagar con PayPal'}
+                            {checkoutPending && checkoutMethod === 'con PayPal' ? 'Conectando con PayPal…' : 'Pagar con PayPal'}
+                        </button>
+                        <button
+                            type="button"
+                            className="cart-card-button"
+                            onClick={checkoutWithCard}
+                            disabled={checkoutPending}
+                        >
+                            {checkoutPending && checkoutMethod === 'con tarjeta' ? (
+                                'Conectando con el pago…'
+                            ) : (
+                                <>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                                        <path d="M3 10h18m-14 5h4" />
+                                    </svg>
+                                    Pagar con tarjeta
+                                </>
+                            )}
                         </button>
                         <button
                             type="button"
