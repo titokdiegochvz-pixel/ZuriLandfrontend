@@ -127,6 +127,60 @@
     overflow-wrap: anywhere;
 }
 
+.ranking-online-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ranking-online-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    color: #e0e7ff;
+    background: #10251f;
+    border: 1px solid #28543d;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.ranking-online-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    background: #4ade80;
+    border-radius: 50%;
+}
+
+.ranking-online-label {
+    color: #86efac;
+    font-size: 11px;
+}
+
+.ranking-leaderboard {
+    margin-top: 30px;
+}
+
+.ranking-leaderboard-heading {
+    margin-bottom: 12px;
+}
+
+.ranking-leaderboard-heading h3 {
+    margin: 0 0 6px;
+    color: #c4b5fd;
+    font-size: 20px;
+}
+
+.ranking-leaderboard-heading p {
+    margin: 0;
+    color: #a5b4d4;
+    font-size: 13px;
+}
+
 .ranking-kills-list ul {
     display: grid;
     gap: 5px;

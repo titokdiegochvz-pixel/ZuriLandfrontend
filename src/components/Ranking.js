@@ -2,17 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { API_URL } from '../config/api';
 import './Ranking.css';
 
-const FALLBACK_TOWNS = [
-    { name: 'Atlantis', residents: ['Amaro', 'Zurixgod', 'Yisu', 'Iatomicmk'], kills: [] },
-    { name: 'Thalassia', residents: ['Yisuautu', 'Iatomicmk'], kills: [] },
-];
+const REFRESH_INTERVAL_MS = 30000;
 
 const Ranking = ({ onBack }) => {
     const [towns, setTowns] = useState([]);
+    const [killLeaderboard, setKillLeaderboard] = useState([]);
     const [updatedAt, setUpdatedAt] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [usingRosterFallback, setUsingRosterFallback] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
@@ -28,9 +25,7 @@ const Ranking = ({ onBack }) => {
                 });
 
                 if (response.status === 404) {
-                    setTowns(FALLBACK_TOWNS);
-                    setUpdatedAt(null);
-                    setUsingRosterFallback(true);
+                    setError('La API todavía no publica la clasificación de ciudades. El backend debe actualizarse.');
                     return;
                 }
 
@@ -43,9 +38,20 @@ const Ranking = ({ onBack }) => {
                     throw new Error('Invalid Towny response');
                 }
 
-                setTowns(data.towns);
+                setTowns(data.towns.map((town) => ({
+                    ...town,
+                    players: Array.isArray(town.players)
+                        ? town.players
+                        : Array.isArray(town.residents)
+                            ? town.residents
+                            : [],
+                })));
+                setKillLeaderboard(
+                    Array.isArray(data.kill_leaderboard)
+                        ? data.kill_leaderboard.slice(0, 10)
+                        : []
+                );
                 setUpdatedAt(data.updated_at || null);
-                setUsingRosterFallback(false);
             } catch (requestError) {
                 if (requestError.name !== 'AbortError') {
                     setError('No se pudieron cargar las ciudades. Inténtalo de nuevo.');
@@ -61,7 +67,15 @@ const Ranking = ({ onBack }) => {
         return () => controller.abort();
     }, [refreshKey]);
 
-    const killCount = towns.reduce((total, town) => total + town.kills.length, 0);
+    useEffect(() => {
+        const intervalId = window.setInterval(
+            () => setRefreshKey((key) => key + 1),
+            REFRESH_INTERVAL_MS
+        );
+        return () => window.clearInterval(intervalId);
+    }, []);
+
+    const onlinePlayerCount = towns.reduce((total, town) => total + town.players.length, 0);
 
     return (
         <section className="ranking-section">
@@ -76,14 +90,8 @@ const Ranking = ({ onBack }) => {
 
                 <h2>Tabla de clasificación</h2>
 
-                <p>Habitantes de cada ciudad y las últimas 18 bajas registradas.</p>
+                <p>Jugadores conectados por ciudad y los 10 jugadores con más bajas PvP registradas.</p>
             </div>
-
-            {usingRosterFallback && !loading && (
-                <p className="ranking-message" role="status">
-                    Se muestran las ciudades y habitantes indicados. Las bajas reales aparecerán cuando la API de Towny esté disponible.
-                </p>
-            )}
 
             <div className="ranking-tabs">
                 <button
@@ -109,74 +117,99 @@ const Ranking = ({ onBack }) => {
 
             {!error && !loading && towns.length === 0 && (
                 <p className="ranking-message" role="status">
-                    Aún no se reciben ciudades de Towny. Confirma que el plugin esté instalado y activo.
+                    Aún no hay ciudades de Towny sincronizadas.
                 </p>
             )}
 
             {!error && !loading && (
-                <div className="ranking-table-wrap">
-                    <table className="ranking-table">
-                        <thead>
-                            <tr>
-                                <th>CIUDAD</th>
-                                <th>HABITANTES</th>
-                                <th>KILLS</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {towns.length === 0 ? (
+                <>
+                    <div className="ranking-table-wrap">
+                        <table className="ranking-table">
+                            <thead>
                                 <tr>
-                                    <td className="ranking-empty" colSpan="3">
-                                        Esperando la primera sincronización de Towny.
-                                    </td>
+                                    <th>CIUDAD</th>
+                                    <th>JUGADORES ONLINE</th>
                                 </tr>
-                            ) : (
-                                towns.map((town) => (
-                                    <tr key={town.name}>
-                                        <td className="rank-nation">
-                                            {town.name}
-                                        </td>
+                            </thead>
 
-                                        <td className="ranking-names">
-                                            {town.residents.length > 0
-                                                ? town.residents.join(', ')
-                                                : 'Sin habitantes'}
-                                        </td>
-
-                                        <td className="rank-kills ranking-kills-list">
-                                            {town.kills.length > 0 ? (
-                                                <ul>
-                                                    {town.kills.map((kill, index) => (
-                                                        <li key={`${kill.occurred_at}-${kill.killer_name}-${index}`}>
-                                                            <span>{kill.killer_name}</span>
-                                                            {' → '}
-                                                            <span>{kill.victim_name}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            ) : (
-                                                '—'
-                                            )}
+                            <tbody>
+                                {towns.length === 0 ? (
+                                    <tr>
+                                        <td className="ranking-empty" colSpan="2">
+                                            Esperando la primera sincronización de Towny.
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ) : (
+                                    towns.map((town) => (
+                                        <tr key={town.name}>
+                                            <td className="rank-nation">{town.name}</td>
+                                            <td className="ranking-names">
+                                                {town.players.length > 0 ? (
+                                                    <ul className="ranking-online-list">
+                                                        {town.players.map((player) => (
+                                                            <li className="ranking-online-player" key={player}>
+                                                                <span className="ranking-online-dot" aria-hidden="true" />
+                                                                <span>{player}</span>
+                                                                <span className="ranking-online-label">En línea</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    'Ningún jugador conectado'
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <section className="ranking-leaderboard" aria-labelledby="kills-title">
+                        <div className="ranking-leaderboard-heading">
+                            <h3 id="kills-title">Top 10 Kills</h3>
+                            <p>Bajas PvP registradas desde que se instaló la sincronización.</p>
+                        </div>
+                        <div className="ranking-table-wrap">
+                            <table className="ranking-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>JUGADOR</th>
+                                        <th>KILLS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {killLeaderboard.length === 0 ? (
+                                        <tr>
+                                            <td className="ranking-empty" colSpan="3">
+                                                Aún no hay kills PvP registradas.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        killLeaderboard.map((player, index) => (
+                                            <tr key={player.player}>
+                                                <td className="rank-position">{index + 1}</td>
+                                                <td className="rank-nation">{player.player}</td>
+                                                <td className="rank-kills">{player.kills}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </>
             )}
 
             <footer className="ranking-footer">
                 <span>
-                    {towns.length} {towns.length === 1 ? 'ciudad' : 'ciudades'} · {killCount} {killCount === 1 ? 'baja reciente' : 'bajas recientes'} (máx. 18)
+                    {towns.length} {towns.length === 1 ? 'ciudad' : 'ciudades'} · {onlinePlayerCount} {onlinePlayerCount === 1 ? 'jugador conectado' : 'jugadores conectados'} · Top {killLeaderboard.length}/10 kills
                 </span>
                 <span>
                     {updatedAt
                         ? `Actualizado: ${new Date(updatedAt).toLocaleString('es-MX')}`
-                        : usingRosterFallback
-                            ? 'Sin sincronización de bajas'
-                            : 'Esperando la primera sincronización'}
+                        : 'Esperando la primera sincronización'}
                 </span>
             </footer>
         </section>
