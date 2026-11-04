@@ -2,16 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { API_URL } from '../config/api';
 import './Ranking.css';
 
-const categories = {
-    residents: { label: 'Habitantes', icon: '👥' },
-    towns: { label: 'Pueblos', icon: '🏘️' },
-    land: { label: 'Territorio', icon: '🗺️' },
-};
-
 const numberFormat = new Intl.NumberFormat('es-MX');
 
 const Ranking = ({ onBack }) => {
-    const [category, setCategory] = useState('residents');
     const [nations, setNations] = useState([]);
     const [updatedAt, setUpdatedAt] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -57,7 +50,7 @@ const Ranking = ({ onBack }) => {
     }, [refreshKey]);
 
     const sortedNations = [...nations].sort(
-        (first, second) => second[category] - first[category]
+        (first, second) => (second.kills ?? 0) - (first.kills ?? 0)
     );
 
     return (
@@ -73,21 +66,10 @@ const Ranking = ({ onBack }) => {
 
                 <h2>Tabla de clasificación</h2>
 
-                <p>Clasificación actualizada desde las naciones de Towny.</p>
+                <p>Clasificación de naciones por kills de sus habitantes.</p>
             </div>
 
             <div className="ranking-tabs">
-                {Object.entries(categories).map(([key, item]) => (
-                    <button
-                        key={key}
-                        className={`ranking-tab ${
-                            category === key ? 'active' : ''
-                        }`}
-                        onClick={() => setCategory(key)}
-                    >
-                        {item.icon} {item.label}
-                    </button>
-                ))}
                 <button
                     className="ranking-tab"
                     onClick={() => setRefreshKey((key) => key + 1)}
@@ -122,9 +104,7 @@ const Ranking = ({ onBack }) => {
                             <tr>
                                 <th>POS.</th>
                                 <th>NACIÓN</th>
-                                <th>PUEBLOS</th>
-                                <th>HABITANTES</th>
-                                <th>TERRITORIO (PARCELAS)</th>
+                                <th>KILLS</th>
                             </tr>
                         </thead>
 
@@ -147,9 +127,9 @@ const Ranking = ({ onBack }) => {
                                         </strong>
                                     </td>
 
-                                    <td>{numberFormat.format(nation.towns)}</td>
-                                    <td>{numberFormat.format(nation.residents)}</td>
-                                    <td>{numberFormat.format(nation.land)}</td>
+                                    <td className="rank-kills">
+                                        {numberFormat.format(nation.kills ?? 0)}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
