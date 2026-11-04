@@ -102,8 +102,8 @@ const Ranking = ({ onBack }) => {
                     <table className="ranking-table">
                         <thead>
                             <tr>
-                                <th>POS.</th>
-                                <th>NACIÓN</th>
+                                <th>HABITANTES</th>
+                                <th>CIUDADES</th>
                                 <th>KILLS</th>
                             </tr>
                         </thead>
@@ -112,26 +112,18 @@ const Ranking = ({ onBack }) => {
                             {sortedNations.length === 0 ? (
                                 <tr>
                                     <td className="ranking-empty" colSpan="3">
-                                        Aún no hay naciones sincronizadas.
+                                        Aún no hay datos sincronizados.
                                     </td>
                                 </tr>
                             ) : (
-                                sortedNations.map((nation, index) => (
+                                sortedNations.map((nation) => (
                                     <tr key={nation.name}>
-                                        <td className="rank-position">
-                                            {index === 0
-                                                ? '🥇'
-                                                : index === 1
-                                                ? '🥈'
-                                                : index === 2
-                                                ? '🥉'
-                                                : index + 1}
+                                        <td>
+                                            {numberFormat.format(nation.residents ?? 0)}
                                         </td>
 
-                                        <td>
-                                            <strong className="rank-nation">
-                                                {nation.name}
-                                            </strong>
+                                        <td className="rank-nation">
+                                            {numberFormat.format(nation.towns ?? 0)}
                                         </td>
 
                                         <td className="rank-kills">

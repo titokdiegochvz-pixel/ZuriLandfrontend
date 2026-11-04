@@ -11,7 +11,7 @@ describe('Ranking kills leaderboard', () => {
         delete global.fetch;
     });
 
-    test('shows nations ordered by kills without the Towny count columns', async () => {
+    test('shows inhabitants, cities, and kills ordered by kills', async () => {
         global.fetch.mockResolvedValue({
             ok: true,
             json: async () => ({
@@ -28,15 +28,15 @@ describe('Ranking kills leaderboard', () => {
 
         await waitFor(() => expect(screen.getByRole('columnheader', { name: 'KILLS' })).toBeInTheDocument());
 
-        expect(screen.queryByRole('columnheader', { name: /PUEBLOS|HABITANTES|TERRITORIO/ })).not.toBeInTheDocument();
+        expect(screen.getByRole('columnheader', { name: 'HABITANTES' })).toBeInTheDocument();
+        expect(screen.getByRole('columnheader', { name: 'CIUDADES' })).toBeInTheDocument();
+        expect(screen.queryByRole('columnheader', { name: /POS\.|NACIÓN|PUEBLOS|TERRITORIO/ })).not.toBeInTheDocument();
         const rows = Array.from(container.querySelectorAll('.ranking-table tbody tr'));
-        expect(rows.map((row) => row.cells[1].textContent)).toEqual([
-            'Nación Norte',
-            'Nación Este',
-            'Nación Sur',
+        expect(rows.map((row) => [row.cells[0].textContent, row.cells[1].textContent, row.cells[2].textContent])).toEqual([
+            ['18', '5', '27'],
+            ['11', '3', '12'],
+            ['7', '2', '4'],
         ]);
-        expect(rows.map((row) => row.cells[2].textContent)).toEqual(['27', '12', '4']);
-        expect(screen.queryByRole('button', { name: /Habitantes|Pueblos|Territorio/ })).not.toBeInTheDocument();
     });
 
     test('shows zero kills when the ranking snapshot predates kill tracking', async () => {
@@ -51,6 +51,8 @@ describe('Ranking kills leaderboard', () => {
         render(<Ranking onBack={jest.fn()} />);
 
         await waitFor(() => expect(screen.getByRole('columnheader', { name: 'KILLS' })).toBeInTheDocument());
+        expect(screen.getByRole('cell', { name: '5' })).toBeInTheDocument();
+        expect(screen.getByRole('cell', { name: '2' })).toBeInTheDocument();
         expect(screen.getByRole('cell', { name: '0' })).toBeInTheDocument();
     });
 
@@ -63,7 +65,7 @@ describe('Ranking kills leaderboard', () => {
         render(<Ranking onBack={jest.fn()} />);
 
         expect(await screen.findByRole('columnheader', { name: 'KILLS' })).toBeInTheDocument();
-        expect(screen.getByText('Aún no hay naciones sincronizadas.')).toBeInTheDocument();
+        expect(screen.getByText('Aún no hay datos sincronizados.')).toBeInTheDocument();
         expect(screen.getByRole('status')).toHaveTextContent(
             'Confirma que el plugin de sincronización esté instalado y activo en el servidor.'
         );
