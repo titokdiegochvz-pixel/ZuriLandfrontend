@@ -138,6 +138,17 @@
     font-size: 13px;
 }
 
+.store-cart-message {
+    max-width: 700px;
+    margin: 0 auto 16px;
+    padding: 11px 15px;
+    border: 1px solid #554081;
+    border-radius: 8px;
+    background: #1b1730;
+    color: #e8d9ff;
+    font-size: 13px;
+}
+
 .store-products {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
@@ -272,8 +283,7 @@
     margin-top: auto;
 }
 
-.store-buy-button,
-.store-paypal-button {
+.store-add-cart-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -287,20 +297,11 @@
     font-size: 12px;
     font-weight: 750;
     cursor: pointer;
-    transition: filter 160ms ease, transform 160ms ease, background 160ms ease;
-}
-
-.store-buy-button {
     background: linear-gradient(105deg, #962de1, #226fe9);
+    transition: filter 160ms ease, transform 160ms ease;
 }
 
-.store-paypal-button {
-    border-color: #5b4b91;
-    background: #211b36;
-    color: #e9ddff;
-}
-
-.store-buy-button svg {
+.store-add-cart-button svg {
     width: 17px;
     height: 17px;
     fill: none;
@@ -310,19 +311,17 @@
     stroke-width: 1.8;
 }
 
-.store-buy-button:hover,
-.store-paypal-button:hover:not(:disabled) {
+.store-add-cart-button:hover {
     filter: brightness(1.14);
 }
 
-.store-buy-button:active,
-.store-paypal-button:active:not(:disabled) {
+.store-add-cart-button:active {
     transform: translateY(1px);
 }
 
-.store-paypal-button:disabled {
-    cursor: wait;
-    opacity: 0.6;
+.store-add-cart-button:focus-visible {
+    outline: 2px solid #e1c4ff;
+    outline-offset: 3px;
 }
 
 .store-empty-state {
@@ -336,7 +335,7 @@
     font-size: 14px;
 }
 
-.store-secure-payment {
+.store-cart-note {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -346,17 +345,17 @@
     color: #d0cadd;
 }
 
-.store-secure-payment > span {
+.store-cart-note > span {
     height: 1px;
     flex: 1;
     background: linear-gradient(90deg, transparent, #60359b);
 }
 
-.store-secure-payment > span:last-child {
+.store-cart-note > span:last-child {
     transform: rotate(180deg);
 }
 
-.store-secure-payment svg {
+.store-cart-note svg {
     width: 23px;
     height: 23px;
     flex: 0 0 auto;
@@ -367,7 +366,7 @@
     stroke-width: 1.7;
 }
 
-.store-secure-payment p {
+.store-cart-note p {
     margin: 0;
     font-size: 12px;
 }
@@ -412,21 +411,19 @@
         padding: 15px 17px 14px;
     }
 
-    .store-secure-payment {
+    .store-cart-note {
         gap: 9px;
     }
 
-    .store-secure-payment p {
+    .store-cart-note p {
         font-size: 11px;
-        white-space: nowrap;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .store-product-card,
     .store-category-nav button,
-    .store-buy-button,
-    .store-paypal-button {
+    .store-add-cart-button {
         transition: none;
     }
 }

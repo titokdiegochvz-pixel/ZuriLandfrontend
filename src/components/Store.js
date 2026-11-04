@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { API_URL } from '../config/api';
+import { addToCart } from '../cart';
 import './Store.css';
 
 const categories = [
@@ -94,59 +95,17 @@ const Store = () => {
     const [categoria, setCategoria] = useState('rangos');
     const [paypalMensaje, setPaypalMensaje] = useState('');
     const [paypalProcesando, setPaypalProcesando] = useState(false);
+    const [carritoMensaje, setCarritoMensaje] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
     const captureStarted = useRef(false);
 
-    const comprar = async (titulo, precio) => {
+    const agregarAlCarrito = (titulo, precio) => {
         try {
-            const response = await fetch(`${API_URL}/api/create-checkout-session`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    title: titulo,
-                    price: precio,
-                }),
-            });
-            const data = await response.json();
-
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                alert(data.message || data.error || 'Error al crear la sesión de pago.');
-            }
+            addToCart({ title: titulo, price: precio });
+            setCarritoMensaje(`${titulo} se agregó al carrito.`);
         } catch (error) {
-            console.error('Error:', error);
-            alert('No se pudo conectar con el servidor de pagos.');
-        }
-    };
-
-    const pagarConPayPal = async (titulo) => {
-        setPaypalProcesando(true);
-        setPaypalMensaje('');
-
-        try {
-            const response = await fetch(`${API_URL}/api/paypal/orders`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ title: titulo }),
-            });
-            const data = await response.json();
-
-            if (!response.ok || !data.approval_url) {
-                throw new Error(data.message || 'No se pudo iniciar el pago con PayPal.');
-            }
-
-            window.location.assign(data.approval_url);
-        } catch (error) {
-            console.error('Error al iniciar el pago con PayPal:', error);
-            setPaypalMensaje(error.message || 'No se pudo conectar con PayPal.');
-            setPaypalProcesando(false);
+            console.error('Error al agregar el producto al carrito:', error);
+            setCarritoMensaje('No se pudo agregar el producto. Revisa el almacenamiento del navegador e inténtalo de nuevo.');
         }
     };
 
@@ -231,6 +190,11 @@ const Store = () => {
                     Procesando pago con PayPal...
                 </p>
             )}
+            {carritoMensaje && (
+                <p className="store-cart-message" role="status">
+                    {carritoMensaje}
+                </p>
+            )}
 
             <div
                 className={`store-products ${categoria === 'rangos' ? 'store-products-ranks' : ''}`}
@@ -254,23 +218,16 @@ const Store = () => {
                         <div className="store-product-actions">
                             <button
                                 type="button"
-                                className="store-buy-button"
-                                onClick={() => comprar(item.titulo, item.precio)}
+                                className="store-add-cart-button"
+                                onClick={() => agregarAlCarrito(item.titulo, item.precio)}
                             >
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M3 4h2l2.2 11h11.5l2-8H6" />
                                     <circle cx="9" cy="19" r="1.5" />
                                     <circle cx="17" cy="19" r="1.5" />
+                                    <path d="M12 7v5m-2.5-2.5h5" />
                                 </svg>
-                                Comprar con tarjeta
-                            </button>
-                            <button
-                                type="button"
-                                className="store-paypal-button"
-                                onClick={() => pagarConPayPal(item.titulo)}
-                                disabled={paypalProcesando}
-                            >
-                                Pagar con PayPal
+                                Agregar al carrito
                             </button>
                         </div>
                     </article>
@@ -281,13 +238,14 @@ const Store = () => {
                 )}
             </div>
 
-            <div className="store-secure-payment">
+            <div className="store-cart-note">
                 <span />
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <path d="M3 10h18m-13 5h4" />
+                    <path d="M3 4h2l2.2 11h11.5l2-8H6" />
+                    <circle cx="9" cy="19" r="1.5" />
+                    <circle cx="17" cy="19" r="1.5" />
                 </svg>
-                <p>Pagos con tarjeta y PayPal</p>
+                <p>Los productos que agregues aparecerán en tu carrito</p>
                 <span />
             </div>
         </section>

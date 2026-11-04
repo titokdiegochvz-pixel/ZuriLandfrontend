@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AUTH_CHANGE_EVENT, clearCurrentUser, getCurrentUser } from '../auth';
+import { CART_CHANGE_EVENT, getCartCount } from '../cart';
 import './Header.css';
 
 const Header = () => {
     const [usuario, setUsuario] = useState(getCurrentUser);
+    const [cartCount, setCartCount] = useState(getCartCount);
 
     useEffect(() => {
         const handleAuthChange = () => setUsuario(getCurrentUser());
         window.addEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
         return () => window.removeEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
+    }, []);
+
+    useEffect(() => {
+        const handleCartChange = () => setCartCount(getCartCount());
+        window.addEventListener(CART_CHANGE_EVENT, handleCartChange);
+        return () => window.removeEventListener(CART_CHANGE_EVENT, handleCartChange);
     }, []);
 
     const navItems = [
@@ -58,9 +66,14 @@ const Header = () => {
                         </>
                     )}
 
-                    <Link to="/store" className="cart-button" title="Ir a la tienda">
+                    <Link
+                        to="/store"
+                        className="cart-button"
+                        title="Ir a la tienda"
+                        aria-label={`Carrito con ${cartCount} ${cartCount === 1 ? 'producto' : 'productos'}`}
+                    >
                         🛒
-                        <span className="cart-count">0</span>
+                        <span className="cart-count">{cartCount}</span>
                     </Link>
                 </div>
             </nav>
