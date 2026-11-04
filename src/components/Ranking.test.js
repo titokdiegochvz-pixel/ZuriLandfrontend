@@ -66,6 +66,20 @@ describe('Towny player kill feed', () => {
         expect(screen.getByText('Esperando la primera sincronización de Towny.')).toBeInTheDocument();
     });
 
+    test('shows the requested city rosters when the deployed API route is missing without inventing kills', async () => {
+        global.fetch.mockResolvedValue({ ok: false, status: 404 });
+
+        const { container } = render(<Ranking onBack={jest.fn()} />);
+
+        expect(await screen.findByText('Se muestran las ciudades y habitantes indicados. Las bajas reales aparecerán cuando la API de Towny esté disponible.')).toBeInTheDocument();
+        const rows = Array.from(container.querySelectorAll('.ranking-table tbody tr'));
+        expect(rows.map((row) => Array.from(row.cells, (cell) => cell.textContent))).toEqual([
+            ['Atlantis', 'Amaro, Zurixgod, Yisu, Iatomicmk', '—'],
+            ['Thalassia', 'Yisuautu, Iatomicmk', '—'],
+        ]);
+        expect(screen.getByText('2 ciudades · 0 bajas recientes (máx. 18)')).toBeInTheDocument();
+    });
+
     test('retains the manual refresh control', async () => {
         global.fetch.mockResolvedValue({
             ok: true,

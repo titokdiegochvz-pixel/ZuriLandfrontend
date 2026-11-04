@@ -2,11 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { API_URL } from '../config/api';
 import './Ranking.css';
 
+const FALLBACK_TOWNS = [
+    { name: 'Atlantis', residents: ['Amaro', 'Zurixgod', 'Yisu', 'Iatomicmk'], kills: [] },
+    { name: 'Thalassia', residents: ['Yisuautu', 'Iatomicmk'], kills: [] },
+];
+
 const Ranking = ({ onBack }) => {
     const [towns, setTowns] = useState([]);
     const [updatedAt, setUpdatedAt] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [usingRosterFallback, setUsingRosterFallback] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
@@ -21,6 +27,13 @@ const Ranking = ({ onBack }) => {
                     signal: controller.signal,
                 });
 
+                if (response.status === 404) {
+                    setTowns(FALLBACK_TOWNS);
+                    setUpdatedAt(null);
+                    setUsingRosterFallback(true);
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
@@ -32,6 +45,7 @@ const Ranking = ({ onBack }) => {
 
                 setTowns(data.towns);
                 setUpdatedAt(data.updated_at || null);
+                setUsingRosterFallback(false);
             } catch (requestError) {
                 if (requestError.name !== 'AbortError') {
                     setError('No se pudieron cargar las ciudades. Inténtalo de nuevo.');
@@ -64,6 +78,12 @@ const Ranking = ({ onBack }) => {
 
                 <p>Habitantes de cada ciudad y las últimas 18 bajas registradas.</p>
             </div>
+
+            {usingRosterFallback && !loading && (
+                <p className="ranking-message" role="status">
+                    Se muestran las ciudades y habitantes indicados. Las bajas reales aparecerán cuando la API de Towny esté disponible.
+                </p>
+            )}
 
             <div className="ranking-tabs">
                 <button
@@ -154,7 +174,9 @@ const Ranking = ({ onBack }) => {
                 <span>
                     {updatedAt
                         ? `Actualizado: ${new Date(updatedAt).toLocaleString('es-MX')}`
-                        : 'Esperando la primera sincronización'}
+                        : usingRosterFallback
+                            ? 'Sin sincronización de bajas'
+                            : 'Esperando la primera sincronización'}
                 </span>
             </footer>
         </section>
